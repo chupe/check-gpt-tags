@@ -1,1 +1,1 @@
-# check-gpt-tags
+# check-gp-tags

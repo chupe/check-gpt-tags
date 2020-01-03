@@ -1,0 +1,31 @@
+{
+  "name": "check-gp-tags",
+  "version": "1.0.0",
+  "description": "Get information about Google publisher tags on a specific site",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chupe/check-gpt-tags.git"
+  },
+  "keywords": [
+    "gpt",
+    "publisher",
+    "tags"
+  ],
+  "author": "chupe <chupex@protonmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chupe/check-gpt-tags/issues"
+  },
+  "homepage": "https://github.com/chupe/check-gpt-tags#readme",
+  "devDependencies": {
+    "@types/jest": "24.0.25",
+    "jest": "24.9.0"
+  }
+}
