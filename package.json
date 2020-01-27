@@ -4,7 +4,7 @@
   "description": "Get information about Google publisher tags on a specific site",
   "main": "src/index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest --detectOpenHandles --forceExit"
   },
   "jest": {
     "testEnvironment": "node"
@@ -26,6 +26,13 @@
   "homepage": "https://github.com/chupe/check-gpt-tags#readme",
   "devDependencies": {
     "@types/jest": "24.0.25",
+    "@types/mongoose": "5.5.41",
+    "@types/puppeteer": "2.0.0",
     "jest": "24.9.0"
+  },
+  "dependencies": {
+    "lodash": "4.17.15",
+    "mongoose": "5.8.9",
+    "puppeteer": "2.0.0"
   }
 }
