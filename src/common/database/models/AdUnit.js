@@ -1,12 +1,12 @@
 const mongoose = require('mongoose')
 
 const AdUnitSchema = new mongoose.Schema({
-    name: String,
-    ID: String,
+    name: { type: String, required: true, unique: true },
+    ID: { type: String, required: true },
     sizes: { type: Array, default: [] },
     pageType: { type: Array, default: [] },
     inScript: Boolean,
-    publisher: String,
+    publisher: { type: String, required: true },
     date: { type: Date, default: Date.now }
 })
 

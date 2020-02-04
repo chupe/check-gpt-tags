@@ -3,9 +3,12 @@ const puppeteer = require('puppeteer'),
     gt = require('./gpt-access.js'),
     storage = require('../common/database/storage')
 
-// let url = 'https://akos.ba/vijesti'
+async function loadMobile(url) {
+    const iPhone = puppeteer.devices['iPhone 7']
+    return load(url, iPhone)
+}
 
-async function load(url) {
+async function load(url, device) {
 
     const browser = await puppeteer.launch({
         // devtools: true,
@@ -24,6 +27,7 @@ async function load(url) {
         }
     })
 
+    if (device) await page.emulate(device)
     await page.goto(url)
 
     await page.addScriptTag({ content: `${gt}` })
@@ -35,8 +39,11 @@ async function load(url) {
 
     await browser.close()
 
-    // console.log(details)
+    console.log(details.adUnits['akos.ba_970x90'].pageType)
     return details
 }
 
-module.exports = { load }
+module.exports = {
+    load,
+    loadMobile
+}

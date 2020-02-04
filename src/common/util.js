@@ -1,3 +1,5 @@
+//@ts-nocheck
+
 const https = require('https')
 
 function fetchFromUrl(url) {
@@ -123,6 +125,13 @@ function ObjectEquals() {
         //If everything passed, let's say YES
         return true;
     }
+
+}
+
+function errFmt(e) {
+    if (!e.msg && !e.message) e.message = e.toString()
+
+    return { message: e }
 }
 
 module.exports = {
@@ -131,5 +140,6 @@ module.exports = {
     hasProperties,
     isIterable,
     ArrayEquals,
-    ObjectEquals
+    ObjectEquals,
+    errFmt
 }

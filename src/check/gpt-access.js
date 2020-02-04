@@ -4,13 +4,13 @@ module.exports = function injected() {
 
     function checkDivs() {
         let adUnits = getAdUnits()
-            for (let adUnit in adUnits) {
-                if (document.querySelector(`[id="${adUnits[adUnit].ID}"]`)) {
-                    adUnits[adUnit].pageType = getPageType()
-                }
+        for (let adUnit in adUnits) {
+            if (document.querySelector(`[id="${adUnits[adUnit].ID}"]`)) {
+                adUnits[adUnit].pageType = getPageType()
             }
+        }
 
-            return adUnits
+        return adUnits
     }
 
     function getScript() {
@@ -23,7 +23,7 @@ module.exports = function injected() {
             }
         }
 
-        return adxbid[0]
+        return adxbid
     }
 
     function getAdUnits() {
@@ -62,10 +62,15 @@ module.exports = function injected() {
     }
 
     function getPageType() {
-        let pageType = []
+        let pageType = [],
+        mobileReg = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i,
+        isMobile = mobileReg.test(navigator.userAgent),
+        mobileString = ''
+
+        if (isMobile) mobileString = '_mobile'
 
         if (url.pathname === '/' || url.pathname === '')
-            pageType.push('homepage')
+            pageType.push('homepage' + mobileString)
         else if (
             url.pathname.startsWith('/kategorija') ||
             url.pathname.startsWith('/category') ||
@@ -73,9 +78,10 @@ module.exports = function injected() {
             url.pathname.startsWith('/teme') ||
             url.pathname.startsWith('/vijesti')
         )
-            pageType.push('category')
+            pageType.push('category' + mobileString)
         else
-            pageType.push('article')
+            pageType.push('article' + mobileString)
+
 
         return pageType
     }

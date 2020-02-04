@@ -4,6 +4,7 @@ const mongoose = require('mongoose'),
     auth = require('./auth'),
     Publisher = require('./models/Publisher'),
     AdUnit = require('./models/AdUnit'),
+    Error = require('./models/Error'),
     uri = `mongodb+srv://${auth.username}:${auth.password}@cluster0-ne8vt.mongodb.net/test`, //?retryWrites=true&w=majority
     options = {
         useUnifiedTopology: true,
@@ -15,31 +16,11 @@ const mongoose = require('mongoose'),
 async function updatePub(newObj) {
     let result
 
-    let doc = await Publisher.findOne({ name: newObj.name })
+    async function update(newObj) {
 
-    if (!doc) doc = new Publisher()
+        let doc = await Publisher.findOne({ name: newObj.name })
 
-    for (let prop in newObj) {
-        if (Array.isArray(newObj[prop])) {
-            //Union of two arrays without repeating equal values and works with array within arrays
-            //unlike some other methods
-            doc[prop] = _.unionWith(doc[prop], newObj[prop], _.isEqual)
-        } else {
-            doc[prop] = newObj[prop]
-        }
-    }
-
-    result = await doc.save()
-    return result
-}
-
-async function updateAdunit(newObj) {
-    let result, doc
-
-    async function update(adUnit) {
-        doc = await AdUnit.findOne({ name: adUnit.name })
-
-        if (!doc) doc = new AdUnit()
+        if (!doc) doc = new Publisher()
 
         for (let prop in newObj) {
             if (Array.isArray(newObj[prop])) {
@@ -48,6 +29,40 @@ async function updateAdunit(newObj) {
                 doc[prop] = _.unionWith(doc[prop], newObj[prop], _.isEqual)
             } else {
                 doc[prop] = newObj[prop]
+            }
+        }
+
+        return doc.save()
+    }
+
+    if (Array.isArray(newObj)) {
+        result = []
+        for (let publisher of newObj) {
+            result.push(await update(publisher))
+        }
+    } else {
+        result = await update(newObj)
+    }
+
+    return result
+}
+
+async function updateAdunit(newObj) {
+    let result
+
+    async function update(adUnit) {
+        let doc = await AdUnit.findOne({ name: adUnit.name })
+
+        if (!doc) doc = new AdUnit()
+
+        for (let prop in adUnit) {
+            if (Array.isArray(adUnit[prop])) {
+                for (let elem of adUnit[prop]) {
+                    if (_.findIndex(doc[prop], (o) => _.isMatch(o, elem)) <= -1) // doc array contains elem
+                        doc[prop].push(elem)
+                }
+            } else {
+                doc[prop] = adUnit[prop]
             }
         }
 
@@ -66,20 +81,20 @@ async function updateAdunit(newObj) {
     return result
 }
 
-// For testing purposes
-// (async () => {
-//     let doc = await updateAdunit(newObj.adUnits['-turkish.airlines-'])
-//     console.log(doc)
-// })()
+async function storeError(newObj) {
+    let doc = new Error(newObj)
+
+    return doc.save()
+}
 
 async function getPub(queryObj) {
-    let result = await Publisher.findOne({ queryObj })
+    let result = await Publisher.findOne(queryObj)
 
     return result
 }
 
 async function getAdunit(queryObj) {
-    let result = await AdUnit.find({ queryObj })
+    let result = await AdUnit.find(queryObj)
 
     return result
 }
@@ -98,5 +113,6 @@ module.exports = {
     updateAdunit,
     getAdunit,
     connect,
-    disconnect
+    disconnect,
+    storeError
 }

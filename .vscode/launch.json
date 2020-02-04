@@ -8,7 +8,7 @@
         "type": "node",
         "request": "launch",
         "name": "Launch Program",
-        "program": "${workspaceFolder}/src/check/tags.js",
+        "program": "${workspaceFolder}/src/index.js",
         "skipFiles": [
             "<node_internals>/**"
         ]

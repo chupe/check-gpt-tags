@@ -1,8 +1,7 @@
-const mongoose = require('mongoose'),
-    AdUnit = require('./AdUnit')
+const mongoose = require('mongoose')
 
-const PublisherSchema = mongoose.Schema({
-    name: String,
+const PublisherSchema = new mongoose.Schema({
+    name: { type: String, required: true },
     adstxtCheck: Boolean,
     adstxtMissingLines: { type: Array, default: [] },
     pageType: { type: Array, default: [] },
