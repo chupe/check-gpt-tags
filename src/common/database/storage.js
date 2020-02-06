@@ -58,7 +58,7 @@ async function updateAdunit(newObj) {
         for (let prop in adUnit) {
             if (Array.isArray(adUnit[prop])) {
                 for (let elem of adUnit[prop]) {
-                    if (_.findIndex(doc[prop], (o) => _.isMatch(o, elem)) <= -1) // doc array contains elem
+                    if (_.findIndex(doc[prop], (o) => _.isMatch(o, elem)) <= -1 && elem) // doc array contains elem and elem not null
                         doc[prop].push(elem)
                 }
             } else {
@@ -101,10 +101,14 @@ async function getAdunit(queryObj) {
 
 async function connect() {
     await mongoose.connect(uri, options)
+
+    return true
 }
 
 async function disconnect() {
     await mongoose.disconnect()
+
+    return true
 }
 
 module.exports = {

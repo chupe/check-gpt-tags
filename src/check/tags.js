@@ -39,7 +39,7 @@ async function load(url, device) {
 
     await browser.close()
 
-    console.log(details.adUnits['akos.ba_970x90'].pageType)
+    console.log(details.name,  details.pageType)
     return details
 }
 

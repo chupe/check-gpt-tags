@@ -1,6 +1,15 @@
 module.exports = function injected() {
     let url = new URL(document.URL)
-    let hostname = url.hostname
+
+    function hostname() {
+        let hostname = url.hostname,
+            arr = hostname.split('')
+        if (hostname.startsWith('www.')) {
+            arr.splice(0, 4)
+            return arr.join('')
+        }
+        else return hostname
+    }
 
     function checkDivs() {
         let adUnits = getAdUnits()
@@ -48,7 +57,7 @@ module.exports = function injected() {
                 return b[0] * b[1] - a[0] * a[1]
             })
 
-            let publisher = hostname
+            let publisher = hostname()
 
             result[name] = {
                 name,
@@ -63,25 +72,34 @@ module.exports = function injected() {
 
     function getPageType() {
         let pageType = [],
-        mobileReg = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i,
-        isMobile = mobileReg.test(navigator.userAgent),
-        mobileString = ''
+            mobileReg = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i,
+            isMobile = mobileReg.test(navigator.userAgent),
+            mobileString = '',
+            arr = url.pathname.split('/'),
+            pathArr = url.pathname.split(''),
+            catIdentifiers = ['kategorija', 'category', 'sport', 'vijesti', 'teme'],
+            homeIdentifiers = ['', '/', 'm', 'mobile-home', 'mobile']
 
         if (isMobile) mobileString = '_mobile'
 
-        if (url.pathname === '/' || url.pathname === '')
-            pageType.push('homepage' + mobileString)
-        else if (
-            url.pathname.startsWith('/kategorija') ||
-            url.pathname.startsWith('/category') ||
-            url.pathname.startsWith('/sport') ||
-            url.pathname.startsWith('/teme') ||
-            url.pathname.startsWith('/vijesti')
-        )
-            pageType.push('category' + mobileString)
-        else
-            pageType.push('article' + mobileString)
+        while (arr.indexOf('') > -1) arr.splice(arr.indexOf(''), 1)
+        while (pathArr.indexOf('/') > -1) pathArr.splice(pathArr.indexOf('/'), 1)
+        let pathname = pathArr.join('')
 
+        if (homeIdentifiers.includes(pathname)) pageType.push('homepage' + mobileString)
+        else {
+            let type
+            for (let section of arr) {
+                if (arr.length < 3 && catIdentifiers.includes(section)) {
+                    type = 'category' + mobileString
+                    break
+                } else if (!Number.isNaN(parseInt(section))) {
+                    type = 'article' + mobileString
+                    break
+                }
+            }
+            pageType.push(type)
+        }
 
         return pageType
     }
@@ -90,7 +108,7 @@ module.exports = function injected() {
         adUnits: checkDivs(),
         scripts: getScript(),
         pageType: getPageType(),
-        name: hostname
+        name: hostname()
     }
 
     return obj

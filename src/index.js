@@ -1,71 +1,57 @@
-const tags = require('./check/tags'),
-    script = require('./check/script'),
+const check = require('./check/check'),
     storage = require('./common/database/storage'),
     util = require('./common/util'),
-    _ = require('lodash')
+    _ = require('lodash'),
+    fs = require('fs'),
+    mongoose = require('mongoose')
 
-let category = 'https://www.akos.ba/vijesti',
-    article = 'https://akos.ba/potreba-za-afirmacijom-zelenog-dzihada/',
-    home = new URL(category).origin,
-    url = new URL(category)
+// let category = new URL('https://akos.ba/vijesti'),
+//     article = new URL('https://akos.ba/potreba-za-afirmacijom-zelenog-dzihada/')
+let category = new URL('https://a2news.com/sport'),
+    article = new URL('https://a2news.com/2020/02/04/basha-takohet-me-aleatet-per-nje-formule-te-re-per-koalicionet')
 
-console.log('started', url.host)
+console.log('STARTED', category.host)
 
-scriptCheck()
-    .then((res) => {
-        console.log(res)
-        console.log('storing ended successfully')
-        storage.disconnect()
-    })
-    .catch(e => {
-        storage.storeError(util.errFmt(e))
-            .then(res => console.log('ERROR:', res))
-            .catch(e => console.log(util.errFmt(e)))
-            .finally(() => storage.disconnect())
-    })
-    .finally(() => console.log('finished'))
+iteratePubs()
 
-async function scriptCheck() {
-
+async function iteratePubs() {
     await storage.connect()
-    let pub = await storage.getPub({ name: 'akos.ba' })
-    // console.log(pub)
-    let res = await script.check(pub)
+    let txt = fs
+        .readFileSync('/home/chupe/Lupon Media/development/check-gpt-tags/src/tabela.txt')
+        .toString()
 
-    return res
+    let arr = txt.split('\n')
+    let publishers = []
+    for (let line of arr) {
+        publishers.push(line.split('\t')[0])
+    }
+    try {
+        let test = publishers.slice(3, 5)
+        for (let pub of test) {
+            console.log(pub)
+            pub = _.trim(pub, 'w')
+            console.log(pub)
+            await start(new URL('https://' + pub))
+        }
+        // await storage.disconnect()
+    } catch (e) {
+        console.log('ERROR CLOSING SERVER:', e)
+    }
 }
 
-// store()
-//     .then((res) => {
-//         // console.log(res)
-//         console.log('storing ended successfully')
-//         storage.disconnect()
-//     })
-//     .catch(e => {
-//         console.log(e)
-//         storage.storeError(e)
-//             .catch(e => console.log(e))
-//             .finally(() => storage.disconnect())
-//     })
-//     .finally(() => console.log('finished'))
+async function start(url) {
 
-async function store() {
-    await storage.connect()
-    let results = await Promise.all([
-        tags.load(home),
-        tags.loadMobile(home),
-        tags.load(article),
-        tags.loadMobile(article),
-        tags.load(category),
-        tags.loadMobile(category)
-    ])
-
-    let toAwait = []
-    for (let result of results) {
-        let array = _.values(result.adUnits)
-        toAwait.push(await storage.updateAdunit(array))
-        toAwait.push(await storage.updatePub(result))
+    try {
+        await check.store(url)
+        console.log('STORING FINISHED')
+        check.scriptCheck(url)
+        console.log('SCRIPT CHECK FINISHED')
+    } catch (e) {
+        try {
+            await storage.storeError(e)
+            console.log('ERROR (stored):', util.errFmt(e))
+        } catch (e) {
+            console.log('ERROR:', util.errFmt(e))
+        }
     }
-
-    return toAwait
 }

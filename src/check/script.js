@@ -5,33 +5,43 @@ const _ = require('lodash'),
     storage = require('../common/database/storage')
 
 async function check(publisher) {
-    
-    let adUnit = await storage.getAdunit({ publisher: publisher.name }),
-    result = []
-    
-    for (let url of publisher.scripts) {
-        let script
+    let result = []
 
-        try {
-            script = await util.fetchFromUrl(url)
-        } catch (e) {
-            console.log(e)
+    if (Array.isArray(publisher)) {
+        for (let pub of publisher) {
+            result.push(checkSingle(pub))
         }
-        for (let unit of adUnit) {
-            let reg = new RegExp(unit.ID)
-            let scriptTag = script.match(reg)
-            if (scriptTag && scriptTag.length > 0) {
-                console.log('here we are', scriptTag[0])
-                unit.inScript = true
-                result.push(unit.save())
-            } else {
-                unit.inScript = false
-                result.push(unit.save())
+    } else if (publisher) {
+        result.push(checkSingle(publisher))
+    } else console.log(publisher, 'ERROR, invalid publisher')
+
+    async function checkSingle(publisher) {
+
+        let adUnit = await storage.getAdunit({ publisher: publisher.name })
+
+        for (let url of publisher.scripts) {
+            let script
+
+            try {
+                script = await util.fetchFromUrl(url)
+                for (let unit of adUnit) {
+                    let reg = new RegExp(unit.ID)
+                    let scriptTag = script.match(reg)
+                    if (scriptTag && scriptTag.length > 0) {
+                        unit.inScript = true
+                        result.push(await unit.save())
+                    } else {
+                        unit.inScript = false
+                        result.push(await unit.save())
+                    }
+                }
+            } catch (e) {
+                console.log(e)
             }
         }
     }
 
-    return await Promise.all(result)
+    return Promise.all(result)
 }
 
 module.exports = {
