@@ -6,6 +6,7 @@ const PublisherSchema = new mongoose.Schema({
     adstxtMissingLines: { type: Array, default: [] },
     pageType: { type: Array, default: [] },
     scripts: { type: Array, default: [] },
+    unusedBids: { type: Array, default: [] },
     date: { type: Date, default: Date.now }
 })
 

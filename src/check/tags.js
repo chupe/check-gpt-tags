@@ -39,7 +39,8 @@ async function load(url, device) {
 
     await browser.close()
 
-    console.log(details.name,  details.pageType)
+    // console.log()
+
     return details
 }
 

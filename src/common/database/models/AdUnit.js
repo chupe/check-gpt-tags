@@ -5,7 +5,12 @@ const AdUnitSchema = new mongoose.Schema({
     ID: { type: String, required: true },
     sizes: { type: Array, default: [] },
     pageType: { type: Array, default: [] },
-    inScript: Boolean,
+    prebid: Boolean,
+    bids: { type: Array, default: [] },
+    bids_mobile: { type: Array, default: [] },
+    pbSizes_mobile: { type: Array, default: [] },
+    pbSizes: { type: Array, default: [] },
+    labels: { type: Array, default: [] },
     publisher: { type: String, required: true },
     date: { type: Date, default: Date.now }
 })

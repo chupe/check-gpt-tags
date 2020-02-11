@@ -10,7 +10,7 @@ const check = require('./check/check'),
 let category = new URL('https://a2news.com/sport'),
     article = new URL('https://a2news.com/2020/02/04/basha-takohet-me-aleatet-per-nje-formule-te-re-per-koalicionet')
 
-console.log('STARTED', category.host)
+console.log('STARTED')
 
 iteratePubs()
 
@@ -26,16 +26,16 @@ async function iteratePubs() {
         publishers.push(line.split('\t')[0])
     }
     try {
-        let test = publishers.slice(3, 5)
+        await storage.connect()
+        let test = publishers
         for (let pub of test) {
-            console.log(pub)
             pub = _.trim(pub, 'w')
             console.log(pub)
             await start(new URL('https://' + pub))
         }
         // await storage.disconnect()
     } catch (e) {
-        console.log('ERROR CLOSING SERVER:', e)
+        console.log('ERROR CLOSING SERVER:', util.errFmt(e))
     }
 }
 
@@ -44,11 +44,9 @@ async function start(url) {
     try {
         await check.store(url)
         console.log('STORING FINISHED')
-        check.scriptCheck(url)
-        console.log('SCRIPT CHECK FINISHED')
     } catch (e) {
         try {
-            await storage.storeError(e)
+            await storage.storeError(util.errFmt(e))
             console.log('ERROR (stored):', util.errFmt(e))
         } catch (e) {
             console.log('ERROR:', util.errFmt(e))

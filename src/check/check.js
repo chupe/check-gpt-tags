@@ -1,6 +1,7 @@
 const tags = require('./tags'),
     script = require('./script'),
     storage = require('../common/database/storage'),
+    adstxt = require('./adstxt'),
     util = require('../common/util'),
     _ = require('lodash')
 
@@ -26,20 +27,23 @@ async function store(url) {
         let array = _.values(result.adUnits)
         toAwait.push(await storage.updateAdunit(array))
         toAwait.push(await storage.updatePub(result))
+        toAwait.push(await adstxt(url.href))
     }
 
     return toAwait
 }
 
-async function scriptCheck(url) {
-    let pub = await storage.getPub({ name: url.hostname }),
-        res
-    res = await script.check(pub)
+// process.on('uncaughtException', function (err) {
+//     console.log(err)
+// })
+// storage.connect().then(async () => {
 
-    return res
-}
+//     await store(new URL('https://kukuklok.com'))
+
+//     console.log('finished')
+
+// })
 
 module.exports = {
-    scriptCheck,
     store
 }

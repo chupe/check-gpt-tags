@@ -1,15 +1,24 @@
 //@ts-nocheck
 
-const https = require('https')
+const https = require('https'),
+    http = require('http')
 
 function fetchFromUrl(url) {
     return new Promise((resolve, reject) => {
         if (!url)
             reject('Url to fetch has not been provided')
-        else
-            https.get(url, (res) => {
+        else if (url.startsWith('https://'))
+            https.get(url, res => {
+                if (res.statusCode >= 300 && res.statusCode < 400) resolve(fetchFromUrl(res.headers.location))
                 let body = ''
-                res.on('data', (data) => body += data)
+                res.on('data', data => body += data)
+                res.on('end', () => resolve(body))
+            })
+        else
+            http.get(url, res => {
+                if (res.statusCode >= 300 && res.statusCode < 400) resolve(fetchFromUrl(res.headers.location))
+                let body = ''
+                res.on('data', data => body += data)
                 res.on('end', () => resolve(body))
             })
     })

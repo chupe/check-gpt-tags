@@ -4,11 +4,12 @@ const mongoose = require('mongoose'),
     auth = require('./auth'),
     Publisher = require('./models/Publisher'),
     AdUnit = require('./models/AdUnit'),
-    Error = require('./models/Error'),
+    CustomError = require('./models/Error'),
     uri = `mongodb+srv://${auth.username}:${auth.password}@cluster0-ne8vt.mongodb.net/test`, //?retryWrites=true&w=majority
     options = {
         useUnifiedTopology: true,
         useNewUrlParser: true,
+        useCreateIndex: true,
         retryWrites: true,
         w: 'majority'
     }
@@ -24,6 +25,7 @@ async function updatePub(newObj) {
 
         for (let prop in newObj) {
             if (Array.isArray(newObj[prop])) {
+                if (prop === 'adstxtMissingLines') doc[prop] = []
                 //Union of two arrays without repeating equal values and works with array within arrays
                 //unlike some other methods
                 doc[prop] = _.unionWith(doc[prop], newObj[prop], _.isEqual)
@@ -82,7 +84,12 @@ async function updateAdunit(newObj) {
 }
 
 async function storeError(newObj) {
-    let doc = new Error(newObj)
+    let doc = new CustomError()
+
+    for (let prop in newObj) {
+        if (newObj[prop])
+            doc[prop] = newObj[prop].toString()
+    }
 
     return doc.save()
 }
