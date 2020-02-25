@@ -9,6 +9,8 @@ const ErrorSchema = new mongoose.Schema({
     keyValue: { type: Object },
     errmsg: { type: String },
     message: { type: String },
+    publisher: { type: String },
+    requestedUrl: { type: String },
     date: { type: Date, default: Date.now }
 })
 

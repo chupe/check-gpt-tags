@@ -2,7 +2,7 @@
 module.exports = function injected() {
     let url = new URL(document.URL),
         unusedBids = [],
-        script = getScript()[0]
+        script = getScriptInfo().adxbid[0]
 
 
     function hostname() {
@@ -34,111 +34,132 @@ module.exports = function injected() {
         return gtUnits
     }
 
-    function getScript() {
-        let adxbid = []
+    function getScriptInfo() {
+        let adxbid = [],
+            adServer = [],
+            adocean = 'AdOcean',
+            gam = 'Google Ad Manager',
+            pagora = 'Project Agora',
+            rev = 'Revive Ad Server'
+
         let scriptTags = document.getElementsByTagName('script')
         for (let script of scriptTags) {
-            if (script.getAttribute('src')) {
-                let url = script.getAttribute('src').match(/https:\/\/adxbid\.(info|me)\/[a-z,0-_]+\.js/gi)
+            let src = script.getAttribute('src')
+            if (src) {
+                let url = src.match(/https:\/\/adxbid\.(info|me)\/[a-z,0-_]+\.js/gi)
                 adxbid = url ? url : adxbid
+                if (typeof ado !== 'undefined' && !adServer.includes(adocean))
+                    adServer.push(adocean)
+                if (typeof googletag !== 'undefined' && !adServer.includes(gam))
+                    adServer.push(gam)
+                if (typeof ProjectAgora !== 'undefined' && !adServer.includes(pagora))
+                    adServer.push(pagora)
+                if (typeof reviveAsync !== 'undefined' && !adServer.includes(rev))
+                    adServer.push(rev)
             }
         }
 
-        return adxbid
+        return { adxbid, adServer }
     }
 
     function fillUnusedBids() {
-        for (let pbUnit of adUnits) {
-            if (!pbUnit.labelAny
-                || (isMobile() && (pbUnit.labelAny.includes('mobile') || /mobile/gi.test(script)))
-                || (!isMobile() && (pbUnit.labelAny.includes('desktop') || /desktop/gi.test(script))))
-                unusedBids.push(pbUnit.code)
-        }
+        if (typeof adUnits !== 'undefined')
+            for (let pbUnit of adUnits) {
+                if (!pbUnit.labelAny
+                    || (isMobile() && (pbUnit.labelAny.includes('mobile') || /mobile/gi.test(script)))
+                    || (!isMobile() && (pbUnit.labelAny.includes('desktop') || /desktop/gi.test(script))))
+                    unusedBids.push(pbUnit.code)
+            }
     }
 
     function getAdUnits() {
         let result = {},
+            gtUnits
+
+        if (typeof googletag !== 'undefined')
             gtUnits = googletag.pubads().getSlots()
 
         fillUnusedBids()
 
-        for (let adUnit of gtUnits) {
-            let name = adUnit.getSlotId().getName()
-            name = name.split('/')[2]
-            let ID = adUnit.getSlotId().getDomId()
-            let sizes = adUnit.getSizes()
+        if (Array.isArray(gtUnits))
+            for (let adUnit of gtUnits) {
+                let name = adUnit.getSlotId().getName()
+                name = name.split('/')[2]
+                let ID = adUnit.getSlotId().getDomId()
+                let sizes = adUnit.getSizes()
 
-            let arraySizes = []
+                let arraySizes = []
 
-            for (let size of sizes) {
-                let array = []
-                array.push(size.l, size.j)
-                arraySizes.push(array)
-            }
+                for (let size of sizes) {
+                    let array = []
+                    array.push(size.l, size.j)
+                    arraySizes.push(array)
+                }
 
-            arraySizes.sort((a, b) => {
-                return b[0] * b[1] - a[0] * a[1]
-            })
+                arraySizes.sort((a, b) => {
+                    return b[0] * b[1] - a[0] * a[1]
+                })
 
-            let publisher = hostname()
+                let publisher = hostname()
 
-            let prebid = false,
-                bids, bids_mobile,
-                pbSizes, pbSizes_mobile,
-                labels
+                let prebid = false,
+                    bids, bids_mobile,
+                    pbSizes, pbSizes_mobile,
+                    labels
 
-            for (let pbUnit of adUnits) {
-                let label = ''
+                if (typeof adUnits !== 'undefined')
+                    for (let pbUnit of adUnits) {
+                        let label = ''
 
-                if (!pbUnit.labelAny && !/desktop|mobile/gi.test(script)) label = 'any'
-                else if (!isMobile() && (pbUnit.labelAny && pbUnit.labelAny.includes('desktop') || /desktop/gi.test(script))) label = 'desktop'
-                else if (isMobile() && (pbUnit.labelAny && pbUnit.labelAny.includes('mobile') || /mobile/gi.test(script))) label = 'mobile'
+                        if (!pbUnit.labelAny && !/desktop|mobile/gi.test(script)) label = 'any'
+                        else if (!isMobile() && (pbUnit.labelAny && pbUnit.labelAny.includes('desktop') || /desktop/gi.test(script))) label = 'desktop'
+                        else if (isMobile() && (pbUnit.labelAny && pbUnit.labelAny.includes('mobile') || /mobile/gi.test(script))) label = 'mobile'
 
-                if (pbUnit.code === ID) {
+                        if (pbUnit.code === ID) {
 
-                    switch (label) {
-                        case 'any':
-                            prebid = true
-                            bids = pbUnit.bids
-                            bids_mobile = bids
-                            pbSizes = pbUnit.mediaTypes.banner.sizes
-                            pbSizes_mobile = pbSizes
-                            labels = pbUnit.labelAny
-                            unusedBids.splice(unusedBids.indexOf(ID), 1)
-                            break;
-                        case 'desktop':
-                            prebid = true
-                            bids = pbUnit.bids
-                            pbSizes = pbUnit.mediaTypes.banner.sizes
-                            labels = pbUnit.labelAny
-                            unusedBids.splice(unusedBids.indexOf(ID), 1)
-                            break
-                        case 'mobile':
-                            prebid = true
-                            bids_mobile = pbUnit.bids
-                            pbSizes_mobile = pbUnit.mediaTypes.banner.sizes
-                            labels = pbUnit.labelAny
-                            unusedBids.splice(unusedBids.indexOf(ID), 1)
-                            break
-                        default:
-                            break;
+                            switch (label) {
+                                case 'any':
+                                    prebid = true
+                                    bids = pbUnit.bids
+                                    bids_mobile = bids
+                                    pbSizes = pbUnit.mediaTypes.banner.sizes
+                                    pbSizes_mobile = pbSizes
+                                    labels = pbUnit.labelAny
+                                    unusedBids.splice(unusedBids.indexOf(ID), 1)
+                                    break;
+                                case 'desktop':
+                                    prebid = true
+                                    bids = pbUnit.bids
+                                    pbSizes = pbUnit.mediaTypes.banner.sizes
+                                    labels = pbUnit.labelAny
+                                    unusedBids.splice(unusedBids.indexOf(ID), 1)
+                                    break
+                                case 'mobile':
+                                    prebid = true
+                                    bids_mobile = pbUnit.bids
+                                    pbSizes_mobile = pbUnit.mediaTypes.banner.sizes
+                                    labels = pbUnit.labelAny
+                                    unusedBids.splice(unusedBids.indexOf(ID), 1)
+                                    break
+                                default:
+                                    break;
+                            }
+                        }
                     }
+
+                result[name] = {
+                    name,
+                    ID,
+                    publisher,
+                    sizes: arraySizes,
+                    prebid,
+                    bids,
+                    bids_mobile,
+                    pbSizes,
+                    pbSizes_mobile,
+                    labels,
                 }
             }
-
-            result[name] = {
-                name,
-                ID,
-                publisher,
-                sizes: arraySizes,
-                prebid,
-                bids,
-                bids_mobile,
-                pbSizes,
-                pbSizes_mobile,
-                labels,
-            }
-        }
 
         return result
     }
@@ -148,7 +169,7 @@ module.exports = function injected() {
             mobileString = '',
             arr = url.pathname.split('/'),
             pathArr = url.pathname.split(''),
-            catIdentifiers = ['kategorija', 'category', 'sport', 'vijesti', 'teme'],
+            catIdentifiers = ['kategorija', 'category', 'rubrika', 'sport', 'vijesti', 'teme', 'spor', 'vesti', 'news', 'kosarka'],
             homeIdentifiers = ['', '/', 'm', 'mobile-home', 'mobile']
 
         if (isMobile()) mobileString = '_mobile'
@@ -164,10 +185,7 @@ module.exports = function injected() {
                 if (arr.length < 3 && catIdentifiers.includes(section)) {
                     type = 'category' + mobileString
                     break
-                } else if (!Number.isNaN(parseInt(section))) {
-                    type = 'article' + mobileString
-                    break
-                }
+                } else type = 'article' + mobileString
             }
             pageType.push(type)
         }
@@ -192,13 +210,26 @@ module.exports = function injected() {
         return bids
     }
 
-    let obj = {
-        adUnits: checkDivs(),
-        scripts: getScript(),
-        pageType: getPageType(),
-        name: hostname(),
-        unusedBids: getUnusedBids()
-    }
+    return new Promise((resolve, reject) => {
+        let timeout = 150000
 
-    return obj
+        setTimeout(() => {
+            reject('window.onload timed out after: ' + timeout)
+        }, timeout)
+
+        if (document.readyState === 'complete') returnResolve()
+        else window.onload = returnResolve()
+
+        function returnResolve() {
+            let obj = {
+                adUnits: checkDivs(),
+                scripts: getScriptInfo().adxbid,
+                pageType: getPageType(),
+                name: hostname(),
+                unusedBids: getUnusedBids(),
+                adServer: getScriptInfo().adServer
+            }
+            resolve(obj)
+        }
+    })
 }

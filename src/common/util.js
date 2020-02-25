@@ -1,7 +1,9 @@
 //@ts-nocheck
 
 const https = require('https'),
-    http = require('http')
+    http = require('http'),
+    fs = require('fs'),
+    _ = require('lodash')
 
 function fetchFromUrl(url) {
     return new Promise((resolve, reject) => {
@@ -137,11 +139,64 @@ function ObjectEquals() {
 
 }
 
+function sanitizeUrl(href) {
+    if (!href.startsWith('http')) href = 'https://' + href
+
+    let urlString = new URL(href),
+        hrefSanitized,
+        urlSanitized
+
+    let noProtHref = href.substr(urlString.protocol.length + 2)
+
+    if (noProtHref.startsWith('www.')) hrefSanitized = noProtHref.slice(4)
+    else hrefSanitized = noProtHref
+
+    urlSanitized = new URL(urlString.protocol + hrefSanitized)
+
+    return urlSanitized
+}
+
 function errFmt(e) {
     if (!e.msg && !e.message) e.message = e.toString()
 
     return { message: e }
 }
+
+function readFile(path) {
+    return new Promise((reject, resolve) => {
+        fs.readFile(path, (data, err) => {
+            if (err)
+                reject(err)
+            else
+                resolve(data)
+        })
+    })
+}
+
+async function getUrls() {
+    let urls = [],
+        path = './src/common/links',
+        files = fs.readdirSync(path),
+        links = {}
+
+    for (let file of files) {
+        let content = (await readFile(path + '/' + file)).toString()
+        arr = content.split('\n')
+        for (let line of arr) {
+            let domain = line.split(/\s/)[0]
+            if ((/(?![\s\S]*\/taboola)\./).test(domain) && !urls.includes(domain))
+                urls.push(sanitizeUrl(domain))
+            // console.log(sanitizeUrl(domain).href)
+        }
+    }
+
+    urls.sort((a, b) => {
+        return a > b
+    })
+    return urls
+}
+
+getUrls().catch(e => console.log(e))
 
 module.exports = {
     fetchFromUrl,
@@ -150,5 +205,7 @@ module.exports = {
     isIterable,
     ArrayEquals,
     ObjectEquals,
-    errFmt
+    errFmt,
+    sanitizeUrl,
+    getUrls
 }

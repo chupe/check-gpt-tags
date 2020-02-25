@@ -1,7 +1,7 @@
 const mongoose = require('mongoose'),
     util = require('../util'),
     _ = require('lodash'),
-    auth = require('./auth'),
+    auth = require('./auth') || {username: '', password: ''},
     Publisher = require('./models/Publisher'),
     AdUnit = require('./models/AdUnit'),
     CustomError = require('./models/Error'),
@@ -16,6 +16,10 @@ const mongoose = require('mongoose'),
 
 async function updatePub(newObj) {
     let result
+
+    if (newObj.error)
+        return await storeError(newObj.error)
+
 
     async function update(newObj) {
 
@@ -88,7 +92,7 @@ async function storeError(newObj) {
 
     for (let prop in newObj) {
         if (newObj[prop])
-            doc[prop] = newObj[prop].toString()
+            doc[prop] = newObj[prop]
     }
 
     return doc.save()

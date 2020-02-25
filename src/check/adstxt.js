@@ -5,8 +5,8 @@ const storage = require('../common/database/storage'),
 
 
 async function check(publisher) {
-    let origin = new URL(publisher).origin
-    publisher = new URL(publisher).hostname
+    let origin = new URL(publisher).origin,
+        hostname = new URL(publisher).hostname
     let hostAdsTxt = new URL(origin + '/ads.txt')
     let missingLines = []
 
@@ -45,14 +45,22 @@ async function check(publisher) {
         return missingLines
     }
 
-    let pub = await storage.getPub({ name: publisher })
+    let pub = await storage.getPub({ name: hostname })
+
+    if (!pub) {
+        throw new Error ('Can not check ads.txt before other checks')
+    }
 
     let getLocal = new Promise((res, rej) => fs.readFile(adstxtPath, (err, data) => res(data.toString())))
     let local, remote
     [local, remote] = await Promise.all([getLocal, util.fetchFromUrl(hostAdsTxt.href)])
 
     // @ts-ignore
-    pub.adstxtMissingLines = compareAdsTxt(local, remote)
+    pub.adstxtCheck = true
+    if (local && remote) {
+        // @ts-ignore
+        pub.adstxtMissingLines = compareAdsTxt(local, remote)
+    }
 
     pub.save()
 }

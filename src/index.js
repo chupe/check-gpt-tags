@@ -3,53 +3,31 @@ const check = require('./check/check'),
     util = require('./common/util'),
     _ = require('lodash'),
     fs = require('fs'),
-    mongoose = require('mongoose')
-
-// let category = new URL('https://akos.ba/vijesti'),
-//     article = new URL('https://akos.ba/potreba-za-afirmacijom-zelenog-dzihada/')
-let category = new URL('https://a2news.com/sport'),
-    article = new URL('https://a2news.com/2020/02/04/basha-takohet-me-aleatet-per-nje-formule-te-re-per-koalicionet')
+    adstxt = require('./check/adstxt')
 
 console.log('STARTED')
 
-iteratePubs()
+init()
 
-async function iteratePubs() {
-    await storage.connect()
-    let txt = fs
-        .readFileSync('/home/chupe/Lupon Media/development/check-gpt-tags/src/tabela.txt')
-        .toString()
+async function init() {
 
-    let arr = txt.split('\n')
-    let publishers = []
-    for (let line of arr) {
-        publishers.push(line.split('\t')[0])
-    }
+    let urls = await util.getUrls()
+
     try {
         await storage.connect()
-        let test = publishers
-        for (let pub of test) {
-            pub = _.trim(pub, 'w')
-            console.log(pub)
-            await start(new URL('https://' + pub))
+
+        for (let url of urls) {
+            console.log('Making checks for ' + url.hostname + url.pathname)
+            try {
+                await check.start(url)
+                if (url.pathname === '/') adstxt
+            } catch (e) {
+                console.log(e)
+                continue
+            }
         }
-        // await storage.disconnect()
+        await storage.disconnect()
     } catch (e) {
         console.log('ERROR CLOSING SERVER:', util.errFmt(e))
-    }
-}
-
-async function start(url) {
-
-    try {
-        await check.store(url)
-        console.log('STORING FINISHED')
-    } catch (e) {
-        try {
-            await storage.storeError(util.errFmt(e))
-            console.log('ERROR (stored):', util.errFmt(e))
-        } catch (e) {
-            console.log('ERROR:', util.errFmt(e))
-        }
     }
 }
