@@ -44,8 +44,10 @@ async function check(publisher) {
 
         return missingLines
     }
+    // console.log('inside ads txt ')
 
     let pub = await storage.getPub({ name: hostname })
+
 
     if (!pub) {
         throw new Error ('Can not check ads.txt before other checks')

@@ -33,10 +33,8 @@ async function store(url) {
 }
 
 async function start(url) {
-
     try {
         await store(url)
-        console.log('Storing finished for ' + url.hostname)
         if (['/', ''].includes(url.pathname))
             adstxt(url)
                 .then(() => console.log('Ads.txt for ' + url.hostname + ' has been checked'))

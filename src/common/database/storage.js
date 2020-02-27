@@ -1,7 +1,7 @@
 const mongoose = require('mongoose'),
     util = require('../util'),
     _ = require('lodash'),
-    auth = require('./auth') || {username: '', password: ''},
+    auth = require('./auth') || { username: '', password: '' },
     Publisher = require('./models/Publisher'),
     AdUnit = require('./models/AdUnit'),
     CustomError = require('./models/Error'),
@@ -122,6 +122,10 @@ async function disconnect() {
     return true
 }
 
+function checkConnection() {
+    return mongoose.connection.readyState
+}
+
 module.exports = {
     updatePub,
     getPub,
@@ -129,5 +133,6 @@ module.exports = {
     getAdunit,
     connect,
     disconnect,
-    storeError
+    storeError,
+    checkConnection
 }

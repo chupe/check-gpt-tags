@@ -3,7 +3,8 @@
         "include": [
             "loadash",
             "pupeteer",
-            "jest"
+            "jest",
+            "bull"
         ]
     },
     "compilerOptions": {
