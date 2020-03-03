@@ -2,7 +2,7 @@
 
 const _ = require('lodash'),
     util = require('../common/util'),
-    storage = require('../common/database/storage')
+    storage = require('../database/storage')
 
 async function check(publisher) {
     let result = []

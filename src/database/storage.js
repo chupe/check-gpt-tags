@@ -1,16 +1,16 @@
 const mongoose = require('mongoose'),
-    util = require('../util'),
+    util = require('../common/util'),
     _ = require('lodash'),
-    auth = require('./auth') || { username: '', password: '' },
     Publisher = require('./models/Publisher'),
     AdUnit = require('./models/AdUnit'),
     CustomError = require('./models/Error'),
-    uri = `mongodb+srv://${auth.username}:${auth.password}@cluster0-ne8vt.mongodb.net/test`, //?retryWrites=true&w=majority
+    username = process.env.dbUser,
+    password = process.env.dbPass,
+    uri = `mongodb+srv://${username}:${password}@cluster0-ne8vt.mongodb.net/test`, //?retryWrites=true&w=majority
     options = {
         useUnifiedTopology: true,
         useNewUrlParser: true,
         useCreateIndex: true,
-        retryWrites: true,
         w: 'majority'
     }
 
@@ -99,27 +99,19 @@ async function storeError(newObj) {
 }
 
 async function getPub(queryObj) {
-    let result = await Publisher.findOne(queryObj)
-
-    return result
+    return Publisher.findOne(queryObj)
 }
 
 async function getAdunit(queryObj) {
-    let result = await AdUnit.find(queryObj)
-
-    return result
+    return AdUnit.find(queryObj)
 }
 
-async function connect() {
-    await mongoose.connect(uri, options)
-
-    return true
+function connect() {
+    return mongoose.connect(uri, options)
 }
 
-async function disconnect() {
-    await mongoose.disconnect()
-
-    return true
+function disconnect() {
+    return mongoose.disconnect()
 }
 
 function checkConnection() {

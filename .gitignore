@@ -1,2 +1,3 @@
 node_modules
 src/common/database/auth.js
+src/config.json

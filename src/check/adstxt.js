@@ -1,4 +1,4 @@
-const storage = require('../common/database/storage'),
+const storage = require('../database/storage'),
     util = require('../common/util'),
     fs = require('fs'),
     adstxtPath = '/home/chupe/Lupon Media/development/check-gpt-tags/src/common/ads.txt'

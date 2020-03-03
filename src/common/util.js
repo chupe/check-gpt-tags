@@ -175,7 +175,7 @@ function readFile(path) {
 
 async function getUrls() {
     let urls = [],
-        path = './src/common/links',
+        path = './src/links',
         files = fs.readdirSync(path),
         links = {}
 

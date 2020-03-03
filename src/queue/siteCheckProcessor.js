@@ -1,5 +1,5 @@
 const check = require('../check/check'),
-    storage = require('../common/database/storage')
+    storage = require('../database/storage')
 
 module.exports = async function (job) {
     let url = new URL(job.data.url)

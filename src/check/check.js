@@ -1,6 +1,6 @@
 const tags = require('./tags'),
     script = require('./script'),
-    storage = require('../common/database/storage'),
+    storage = require('../database/storage'),
     adstxt = require('./adstxt'),
     util = require('../common/util'),
     _ = require('lodash')
@@ -35,10 +35,10 @@ async function store(url) {
 async function start(url) {
     try {
         await store(url)
-        if (['/', ''].includes(url.pathname))
-            adstxt(url)
-                .then(() => console.log('Ads.txt for ' + url.hostname + ' has been checked'))
-                .catch(e => console.log(e))
+        if (['/', ''].includes(url.pathname)) {
+            await adstxt(url)
+            console.log('Ads.txt for ' + url.hostname + ' has been checked')
+        }
     } catch (e) {
         try {
             await storage.storeError(util.errFmt(e))
