@@ -34,7 +34,7 @@
   "dependencies": {
     "bull": "3.13.0",
     "fetch": "1.1.0",
-    "lodash": "4.17.15",
+    "lodash": "4.17.19",
     "mongoose": "5.8.9",
     "puppeteer": "2.0.0"
   }
